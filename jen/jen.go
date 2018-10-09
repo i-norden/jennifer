@@ -87,6 +87,10 @@ func (f *File) Render(w io.Writer) error {
 	return nil
 }
 
+func (f *File) RenderImports(source io.Writer) error {
+        return f.renderImports(source)
+}
+
 func (f *File) renderImports(source io.Writer) error {
 
 	// Render the "C" import if it's been used in a `Qual`, `Anon` or if there's a preamble comment

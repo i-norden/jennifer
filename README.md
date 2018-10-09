@@ -3,6 +3,9 @@
 # Jennifer
 Jennifer is a code generator for Go.
 
+## This is a MODIFIED version of github.com/dave/jennifer. DO NO REGENERATE.
+This is a modified version that exposes jen.RenderImports to be used in github.com/raff/gopyr.
+
 ```go
 package main
 
