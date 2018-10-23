@@ -87,8 +87,19 @@ func (f *File) Render(w io.Writer) error {
 	return nil
 }
 
-func (f *File) RenderImports(source io.Writer) error {
-        return f.renderImports(source)
+func (f *File) RenderImports(w io.Writer) error {
+	source := &bytes.Buffer{}
+	if err := f.renderImports(source); err != nil {
+		return err
+	}
+	formatted, err := format.Source(source.Bytes())
+	if err != nil {
+		return fmt.Errorf("Error %s while formatting source:\n%s", err, source.String())
+	}
+	if _, err := w.Write(formatted); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (f *File) renderImports(source io.Writer) error {
