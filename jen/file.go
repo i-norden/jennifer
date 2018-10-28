@@ -110,6 +110,13 @@ func (f *File) Anon(paths ...string) {
 	}
 }
 
+// ImportDot adds an anonymous dotted import.
+func (f *File) ImportDot(paths ...string) {
+	for _, p := range paths {
+		f.imports[p] = importdef{name: ".", alias: true}
+	}
+}
+
 // ImportName provides the package name for a path. If specified, the alias will be omitted from the
 // import block. This is optional. If not specified, a sensible package name is used based on the path
 // and this is added as an alias in the import block.
@@ -131,7 +138,15 @@ func (f *File) ImportAlias(path, alias string) {
 }
 
 func (f *File) isLocal(path string) bool {
-	return f.path == path
+	if f.path == path {
+		return true
+	}
+
+	if imp, ok := f.imports[path]; ok && imp.name == "." { // && imp.alias
+		return true
+	}
+
+	return false
 }
 
 var reserved = []string{
@@ -169,14 +184,14 @@ func (f *File) isValidAlias(alias string) bool {
 func (f *File) register(path string) string {
 	if f.isLocal(path) {
 		// notest
-		// should never get here becasue in Qual the packageToken will be null,
+		// should never get here because in Qual the packageToken will be null,
 		// so render will never be called.
 		return ""
 	}
 
 	// if the path has been registered previously, simply return the name
 	def := f.imports[path]
-	if def.name != "" && def.name != "_" {
+	if def.name != "" && def.name != "_" && def.name != "." {
 		return def.name
 	}
 
