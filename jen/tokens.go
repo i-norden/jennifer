@@ -21,6 +21,7 @@ const (
 	literalByteToken tokenType = "literal_byte"
 	nullToken        tokenType = "null"
 	layoutToken      tokenType = "layout"
+	rawToken         tokenType = "raw"
 )
 
 type token struct {
@@ -92,6 +93,10 @@ func (t token) render(f *File, w io.Writer, s *Statement) error {
 		}
 	case identifierToken:
 		if _, err := w.Write([]byte(t.content.(string))); err != nil {
+			return err
+		}
+	case rawToken:
+		if _, err := w.Write(t.content.([]byte)); err != nil {
 			return err
 		}
 	case nullToken: // notest
@@ -274,6 +279,9 @@ func (s *Statement) Qual(path, name string) *Statement {
 		open:      "",
 		separator: ".",
 	}
+	if ImportAliasFromSources {
+		_, _ = preloadAliasFromSource(path, name) // write imports to cache, take them later
+	}
 	*s = append(*s, g)
 	return s
 }
@@ -298,4 +306,12 @@ func (s *Statement) Line() *Statement {
 	}
 	*s = append(*s, t)
 	return s
+}
+
+func (g *Group) addRaw(data []byte) {
+	t := token{
+		typ:     rawToken,
+		content: data,
+	}
+	g.items = append(g.items, t)
 }

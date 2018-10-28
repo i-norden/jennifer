@@ -3,6 +3,8 @@ package jen
 import (
 	"bytes"
 	"fmt"
+	"go/parser"
+	asttoken "go/token"
 	"regexp"
 	"strings"
 )
@@ -44,6 +46,15 @@ func NewFilePathName(packagePath, packageName string) *File {
 		imports: map[string]importdef{},
 		hints:   map[string]importdef{},
 	}
+}
+
+func NewFileFromSource(src []byte) (*File, error) {
+	set := asttoken.NewFileSet()
+	file, err := parser.ParseFile(set, "", src, 0)
+	if err != nil {
+		return nil, fmt.Errorf("parse source error: %v", err)
+	}
+	return NewFileFromAst(file, set)
 }
 
 // File represents a single source file. Package imports are managed
@@ -173,6 +184,12 @@ func (f *File) register(path string) string {
 	if path == "C" {
 		f.imports["C"] = importdef{name: "C", alias: false}
 		return "C"
+	}
+
+	if ImportAliasFromSources {
+		if alias, ok := importsCache[path]; ok && alias != "" {
+			f.hints[path] = importdef{name: alias, alias: false}
+		}
 	}
 
 	var name string
